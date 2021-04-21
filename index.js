@@ -20,7 +20,7 @@ module.exports = function (data) {
   var schemas = data.split('\n\n')
 
   var result = {
-    syntax: 3,
+    syntax: 2,
     package: null,
     enums: [],
     messages: []
@@ -35,7 +35,7 @@ module.exports = function (data) {
       fields = fields.replace(/^\(/g, '').replace(/\);?$/g, '')
 
       result.package = toHump(tableName).replace(/^\S/, s => s.toLowerCase())
-      result.messages.push(Message(tableName + "Model", fields))
+      result.messages.push(Message(tableName, fields))
     }
   })
 
@@ -61,7 +61,7 @@ function Message(name, fields) {
 
   var lines = fields.split(/,[$|\"|\`|\'|\s+]/i);
 
-  var tag = 0
+  var tag = 1
 
   var newLines = [];
   // 过滤 line
@@ -111,14 +111,13 @@ function Field(data, tag) {
   // mysql
   var imap = '';
   if (typeof (tokens[1]) != "undefined") {
-
     if (tokens[1].indexOf('int') >= 0) {
       for (var v in tokens) {
         if (tokens[v] == 'unsigned') {
-          imap = 'uint32';
+          imap = 'uint64';
         }
       }
-      imap = imap || 'int32';
+      imap = imap || 'int64';
     }
 
     if (tokens[1].indexOf('long') >= 0) {
@@ -149,6 +148,7 @@ function Field(data, tag) {
   }
 
   field.type = imap || 'string'
+  field.type = 'optional ' + field.type
 
   // if (data.match(/.*NOT\s+NULL.*/i)) {
   //   field.required = true
@@ -157,7 +157,6 @@ function Field(data, tag) {
   // if (default_match) {
   //   field.options.default = default_match[1]
   // }
-
   return field
 }
 
